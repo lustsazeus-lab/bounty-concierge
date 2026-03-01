@@ -144,6 +144,7 @@ concierge repos
 | [docs/RED_TEAM.md](docs/RED_TEAM.md) | Rules of engagement for security bounties and red-team challenges |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | 5-minute first bounty walkthrough for new contributors |
 | [docs/PAYOUT_GUIDE.md](docs/PAYOUT_GUIDE.md) | How payouts work, timelines, quality scorecard, and troubleshooting |
+| [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md) | Why we build: preservation, green mining, ethical payouts, human-agent coexistence |
 
 ---
 
