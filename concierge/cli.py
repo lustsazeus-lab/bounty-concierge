@@ -48,10 +48,12 @@ try:
     from concierge.engagement import (
         star_all_ecosystem_repos,
         check_devto_articles,
+        check_saascity_upvote,
     )
 except ImportError:
     star_all_ecosystem_repos = None
     check_devto_articles = None
+    check_saascity_upvote = None
 
 try:
     from concierge.announcer import format_announcement
@@ -579,9 +581,29 @@ def _cmd_engage(args):
                     )
                     print(f"    {a['url']}")
 
+    elif args.saascity:
+        if check_saascity_upvote is None:
+            print(
+                "Error: engagement module is not available.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        try:
+            result = check_saascity_upvote(dry_run=args.dry_run)
+            if args.json:
+                _print_json(result)
+            else:
+                print(f"Upvoted {len(result.get('upvoted', []))} listings")
+                if result.get('failed'):
+                    print(f"Failed: {len(result['failed'])}")
+        except NotImplementedError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
     else:
         print(
-            "Specify an engagement action: --star-repos or --devto",
+            "Specify an engagement action: --star-repos, --devto, or --saascity",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -782,6 +804,8 @@ def _build_parser():
                           help="Star all RustChain ecosystem repos on GitHub")
     p_engage.add_argument("--devto", action="store_true", default=False,
                           help="Check Dev.to article stats")
+    p_engage.add_argument("--saascity", action="store_true", default=False,
+                          help="Upvote RustChain/BoTTube on SaaSCity")
 
     # --- announce ---
     p_announce = sub.add_parser("announce", help="Preview or post bounty announcements")

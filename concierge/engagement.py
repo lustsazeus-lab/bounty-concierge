@@ -114,11 +114,73 @@ def generate_engagement_proof(platform: str, action: str, proof_url: str) -> str
 # Placeholder -- SaaSCity
 # ---------------------------------------------------------------------------
 
-def saascity_upvote() -> None:
+def saascity_upvote(dry_run: bool = False) -> dict:
     """Upvote RustChain on SaaSCity.
 
-    Raises NotImplementedError because a SaaSCity API key is needed first.
+    Args:
+        dry_run: If True, only show what would be upvoted (no API key needed)
+
+    Returns:
+        dict with results
+
+    Raises:
+        NotImplementedError: If SAASCITY_KEY env var is not set (and not dry_run)
     """
-    raise NotImplementedError(
-        "SaaSCity API key needed. Visit saascity.io to register."
-    )
+    import os
+    import requests
+
+    # Listings to upvote (RustChain, BoTTube)
+    listings = [
+        {"name": "RustChain", "slug": "rustchain"},
+        {"name": "BoTTube", "slug": "bottube"},
+    ]
+
+    results = {"upvoted": [], "failed": [], "dry_run": dry_run}
+
+    # Dry run doesn't need API key
+    if dry_run:
+        for listing in listings:
+            print(f"[DRY RUN] Would upvote: {listing['name']} ({listing['slug']})")
+            results["upvoted"].append(listing)
+        return results
+
+    # Real upvote requires API key
+    api_key = os.getenv("SAASCITY_KEY")
+    if not api_key:
+        raise NotImplementedError(
+            "SaaSCity API key needed. Set SAASCITY_KEY env var or visit saascity.io to register."
+        )
+
+    for listing in listings:
+        if dry_run:
+            print(f"[DRY RUN] Would upvote: {listing['name']} ({listing['slug']})")
+            results["upvoted"].append(listing)
+            continue
+
+        try:
+            # Try to upvote - the actual endpoint may vary
+            response = requests.post(
+                f"{base_url}/listings/{listing['slug']}/upvote",
+                headers=headers,
+                timeout=10
+            )
+
+            if response.status_code == 200:
+                print(f"✓ Upvoted: {listing['name']}")
+                results["upvoted"].append(listing)
+            elif response.status_code == 401:
+                results["failed"].append({"listing": listing, "error": "Invalid API key"})
+                print(f"✗ Failed: {listing['name']} - Invalid API key")
+            else:
+                results["failed"].append({"listing": listing, "error": f"HTTP {response.status_code}"})
+                print(f"✗ Failed: {listing['name']} - HTTP {response.status_code}")
+
+        except requests.RequestException as e:
+            results["failed"].append({"listing": listing, "error": str(e)})
+            print(f"✗ Error: {listing['name']} - {e}")
+
+    return results
+
+
+# Alias for CLI
+check_saascity_upvote = saascity_upvote
